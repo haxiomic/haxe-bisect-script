@@ -13,8 +13,10 @@ class Bisect {
 
 	static function main() {
 		var state = try loadState() catch(e: Any) {
-			// Console.error('Setup an initial state in the haxe file (good and bad commits)');
-			// return;
+			Console.error('Setup an initial state in the haxe file (good and bad commits)');
+			Console.error('Then edit testCommit() to suit your problem');
+			Console.error('Finally remove these messages and run!');
+			return;
 			// for example:
 			{
 				bad: '1c31a59',
