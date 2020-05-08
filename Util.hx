@@ -110,7 +110,6 @@ class Util {
 		var c = p.exitCode(true);
 
 		if (c != 0) {
-
 			Console.log('<b,red>\t -> exit: $c</>');
 		}
 
