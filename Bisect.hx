@@ -19,8 +19,8 @@ class Bisect {
 			return;
 			// for example:
 			{
-				bad: '1c31a59',
-				good: '6194be1',
+				bad:  'ab39d7af227ab200a5d3e3dab1ec796987b6ba28',
+				good: '8bd1bac',
 			}
 		}
 
@@ -38,8 +38,8 @@ class Bisect {
 		.filter(h -> h != null);
 
 		function iterate() {
-			var goodIndex = nightlyHashes.indexOf(state.good);
-			var badIndex = nightlyHashes.indexOf(state.bad);
+			var goodIndex = nightlyHashes.indexOf(state.good.substr(0, 7).toLowerCase());
+			var badIndex = nightlyHashes.indexOf(state.bad.substr(0, 7).toLowerCase());
 			if (goodIndex == -1) throw 'good hash ${state.good} not found';
 			if (badIndex == -1) throw 'bad hash ${state.bad} not found';
 
@@ -85,26 +85,35 @@ class Bisect {
 			throw 'Failed to checkout <b>$hash</>';
 		}
 
-		// patch Printer.hx in the local
-		var printerPath = Path.directory(haxePath) + '/std/haxe/macro/Printer.hx';
-		var printerHx = File.getContent(printerPath);
+		// patch Printer.hx in std/ of downloaded haxe
+		{
+			var printerPath = Path.directory(haxePath) + '/std/haxe/macro/Printer.hx';
+			var printerHx = File.getContent(printerPath);
 
-		// replace 
-		// public function printComplexType(ct:ComplexType) *** public function
+			// replace 
+			// public function printComplexType(ct:ComplexType) *** public function
+			
+			var startPattern = ~/public function printComplexType\(ct:ComplexType\)/gm;
+			var endPattern = ~/public function/;
+
+			startPattern.match(printerHx);
+			endPattern.match(startPattern.matchedRight());
+			var before = startPattern.matchedLeft();
+			var after = endPattern.matchedRight();
+
+			var newContent = before + replacement + '\tpublic function' +  after;
+
+			Console.log('<yellow>Patching <b>$printerPath</b></>');
+
+			File.saveContent(printerPath, newContent);
+		}
 		
-		var startPattern = ~/public function printComplexType\(ct:ComplexType\)/gm;
-		var endPattern = ~/public function/;
-
-		startPattern.match(printerHx);
-		endPattern.match(startPattern.matchedRight());
-		var before = startPattern.matchedLeft();
-		var after = endPattern.matchedRight();
-
-		var newContent = before + replacement + '\tpublic function' +  after;
-
-		Console.log('<yellow>Patching <b>$printerPath</b></>');
-
-		File.saveContent(printerPath, newContent);
+		// remove -D analyzer-optimize
+		// {
+		// 	var compileEachPath = haxeDir + '/tests/unit/compile-each.hxml';
+		// 	Console.log('<yellow>Patching <b>$compileEachPath</b></>');
+		// 	File.saveContent(compileEachPath, File.getContent(compileEachPath).replace('-D analyzer-optimize', ''));
+		// }
 
 		cd('tests/unit');
 
