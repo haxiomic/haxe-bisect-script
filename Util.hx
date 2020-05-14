@@ -80,6 +80,7 @@ class Util {
 	}
 
 	static public function runInDir<T>(dir: String, fn: () -> T): T {
+		touchDirectoryPath(dir);
 		var originalCwd = Path.normalize(Sys.getCwd());
 		if (originalCwd != Path.normalize(dir)) {
 			cd(dir);
@@ -137,6 +138,27 @@ class Util {
 			Console.log('Saving state to <b>${Path.join([Sys.getCwd(), stateFilePath])}</>');
 			File.saveContent(stateFilePath, haxe.Json.stringify(state, null, '\t'));
 		});
+	}
+
+	/**
+		Ensures directory structure exists for a given path
+		(Same behavior as mkdir -p)
+		@throws Any
+	**/
+	static public function touchDirectoryPath(path: String) {
+		var directories = Path.normalize(path).split('/');
+		var currentDirectories = [];
+		for (directory in directories) {
+			currentDirectories.push(directory);
+			var currentPath = currentDirectories.join('/');
+			if (currentPath == '/') continue;
+			if (FileSystem.isDirectory(currentPath)) continue;
+			if (!FileSystem.exists(currentPath)) {
+				FileSystem.createDirectory(currentPath);
+			} else {
+				throw 'Could not create directory $currentPath because a file already exists at this path';
+			}
+		}
 	}
 
 }
