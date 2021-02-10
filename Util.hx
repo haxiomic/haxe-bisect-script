@@ -22,11 +22,9 @@ class Util {
 	static public function getNightlyUrls() {
 		var page = if (pageCached == null) {
 			pageCached = runInDir(downloadDir, () -> {
-				try File.getContent('index.html') catch (e: Any) {
-					exec('wget', ['https://build.haxe.org/builds/haxe/mac/']);
-					// older here: https://hxbuilds.s3.us-east-1.amazonaws.com/builds/haxe/mac/index.html
-					File.getContent('index.html');
-				}
+				exec('wget', ['-N', '-q', 'https://build.haxe.org/builds/haxe/mac/']);
+				// older here: https://hxbuilds.s3.us-east-1.amazonaws.com/builds/haxe/mac/index.html
+				File.getContent('index.html');
 			});
 		} else pageCached;
 		if (page == null) {
